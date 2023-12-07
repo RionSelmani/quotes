@@ -1,32 +1,17 @@
 from django.shortcuts import render
-from django.http.response import HttpResponse
+import requests
 
-# Create your views here.
-import urllib.request
-import json
 def index(request):
+    api_url = 'https://quoteapi.pythonanywhere.com/random'
 
-
-
-    api_json = urllib.request.urlopen('https://api.breakingbadquotes.xyz/v1/quotes').read()
-    api_dict = json.loads(api_json)
-    quotes = api_dict[0]['quote']
-
-
-    author = api_dict[0]['author']
-
-    context = {
-        'api_dict':api_dict,
-        "quotes":quotes,
-        "author":author,
-
-    }
-
-
-
-
-
-
-
-    return render(request,'index.html',context)
-
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        quote = data["Quotes"][0]["quote"]
+        author = data["Quotes"][0]["author"]
+        if author == 'Null':
+            author = 'Author is unknown!'
+        return render(request, 'index.html', {'quote': quote, 'author': author})
+    else:
+        error_message = "Failed to fetch data from the API"
+        return render(request, 'index.html', {'error_message': error_message})
